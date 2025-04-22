@@ -18,8 +18,7 @@ class Settings(BaseSettings):
     )
 
     APP_TITLE: str = Field(default="Follower Bot", description="Application title")
-    GITHUB_TOKEN: Optional[str] = Field(
-        default=None,
+    GITHUB_TOKEN: str = Field(
         description="GitHub token for authentication",
     )
     BANNER_FILE: Optional[str] = Field(
