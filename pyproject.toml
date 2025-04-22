@@ -1,0 +1,38 @@
+[project]
+name = "follower-bot"
+version = "0.1.0"
+description = "An automated bot for following GitHub users."
+authors = [{ name = "ftnfurina", email = "ftnfurina@gmail.com" }]
+dependencies = [
+  "pydantic>=2.11.2",
+  "pydantic-settings>=2.8.1",
+  "loguru>=0.7.3",
+  "loguru-config>=0.1.0",
+  "requests>=2.32.3",
+  "ratelimit>=2.2.1",
+  "apscheduler>=3.11.0",
+  "sqlmodel>=0.0.24",
+  "pyyaml>=6.0.2",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[project.scripts]
+follower-bot = "follower_bot.bot:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/follower_bot"]
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.rye.scripts]
+start = "python -m follower_bot.bot"

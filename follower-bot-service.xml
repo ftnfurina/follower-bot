@@ -1,0 +1,11 @@
+<service>
+  <!-- Refer to: https://github.com/winsw/winsw/blob/v3/docs/xml-config-file.md -->
+  <id>follower-bot</id>
+  <name>follower-bot</name>
+  <description>Follower Bot Service</description>
+  <executable>.venv/Scripts/python.exe</executable>
+  <arguments>-m follower_bot.bot</arguments>
+  <log mode="none" />
+  <startmode>Automatic</startmode>
+  <logpath>%BASE%/logs</logpath>
+</service>

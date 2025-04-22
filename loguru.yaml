@@ -1,0 +1,12 @@
+# loguru: https://github.com/Delgan/loguru
+# loguru-config: https://github.com/erezinman/loguru-config
+handlers:
+  - sink: ext://sys.stderr
+    format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{level:>8}</level>: {message}"
+    colorize: true
+    # level: DEBUG
+  - sink: logs/follower-bot.log
+    enqueue: true
+    rotation: "00:00"
+    # level: DEBUG
+    # serialize: true

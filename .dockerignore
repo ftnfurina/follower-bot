@@ -1,0 +1,11 @@
+.venv
+__pycache__
+.vscode
+.ruff_cache
+.git
+*.log
+dist
+logs
+follower-bot.db
+follower-bot-service.exe
+follower-bot-service.xml

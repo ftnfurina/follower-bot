@@ -1,0 +1,24 @@
+{
+  "cSpell.words": [
+    "commitizen",
+    "ftnfurina",
+    "levelname",
+    "levelno",
+    "loguru",
+    "mkdocs",
+    "pycache",
+    "pydantic",
+    "pymysql",
+    "pyyaml",
+    "venv",
+    "startmode",
+    "logpath"
+  ],
+  "cSpell.ignorePaths": [
+    ".venv",
+    ".vscode",
+    "*.log",
+    "*.lock",
+    "pyproject.toml"
+  ]
+}
