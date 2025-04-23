@@ -41,14 +41,12 @@ class Settings(BaseSettings):
     JOB_FOLLOW_USER_BASE: int = Field(
         default=20,
         ge=1,
-        le=30,
-        description="Base number of users to follow per job run (1-30)",
+        description="Base number of users to follow per job run (>= 1)",
     )
     JOB_FOLLOW_USER_JITTER: int = Field(
         default=5,
         ge=0,
-        le=10,
-        description="Jitter for number of users to follow in job run (0-10)",
+        description="Jitter for number of users to follow in job run (>= 0)",
     )
     JOB_RUN_NOW: bool = Field(
         default=True,
