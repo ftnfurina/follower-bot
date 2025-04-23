@@ -50,7 +50,7 @@ def get_unfollowed_users(follow_count: int) -> Tuple[List[User], bool]:
             token=settings.GITHUB_TOKEN,
         )
         add_count = store.add_users(search_users)
-        logger.debug(f"Added {add_count} users")
+        logger.success(f"Added {add_count} users to database")
         store.update_last_page(last_page)
         users = store.query_unfollowed_users(follow_count)
         time.sleep(random.randint(2, 4))
@@ -70,16 +70,16 @@ def is_follow_limit_reached() -> bool:
 def follow_users(users: List[User]) -> List[User]:
     def follow_user_failed(user: User):
         user.follow_fail_count += 1
-        logger.info(f"Failed to follow user: {user.login}")
+        logger.warning(f"Failed to follow user: {user.login}")
         store.update_user(user)
 
     followed_count = 0
 
     for i, user in enumerate(users):
+        logger.info(f"[{i + 1}/{len(users)}]Starting to follow user: {user.login}")
+
         if scheduler.state == 0:
             return followed_count
-
-        logger.info(f"[{i + 1}/{len(users)}]Followed user: {user.login}")
 
         try:
             is_followed = fetch_follow_user(user=user, token=settings.GITHUB_TOKEN)
@@ -88,6 +88,7 @@ def follow_users(users: List[User]) -> List[User]:
                 user.followed_at = datetime.now()
                 store.update_user(user)
                 followed_count += 1
+                logger.success(f"Followed user: {user.login}")
             else:
                 follow_user_failed(user)
         except RequestException as e:
