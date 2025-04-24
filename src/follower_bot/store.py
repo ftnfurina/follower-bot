@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from sqlmodel import Session, SQLModel, and_, create_engine, func, select, asc
 
-from .model import State, User
+from .model import State, User, History
 
 
 def _inject_session(func):
@@ -48,13 +48,36 @@ class Store:
         ).all()
 
     @_inject_session
-    def add_users(self, users: List[User], session: Session = None) -> int:
+    def query_followed_users_count(self, session: Session = None) -> int:
+        return session.exec(
+            select(func.count(User.id)).where(User.is_followed.is_(True))
+        ).one()
+
+    @_inject_session
+    def query_state(self, session: Session = None) -> State:
+        return session.exec(select(State)).first()
+
+    @_inject_session
+    def add_users(self, users: List[User], session: Session = None) -> List[User]:
         added_ids = [u.id for u in self.query_users(users)]
         add_users = [u for u in users if u.id not in added_ids]
         session.add_all(add_users)
         session.commit()
         [session.refresh(u) for u in add_users]
-        return len(add_users)
+        return add_users
+
+    @_inject_session
+    def add_history(self, history: History, session: Session = None) -> None:
+        session.add(history)
+        session.commit()
+        session.refresh(history)
+
+    @_inject_session
+    def _init_state(self, session: Session = None) -> None:
+        if self.query_state() is not None:
+            return
+        session.add(State())
+        session.commit()
 
     @_inject_session
     def update_user(self, user: User, session: Session = None) -> None:
@@ -62,35 +85,11 @@ class Store:
         session.commit()
         session.refresh(user)
 
-    @property
     @_inject_session
-    def followed_users_count(self, session: Session = None) -> int:
-        return session.exec(
-            select(func.count(User.id)).where(User.is_followed.is_(True))
-        ).one()
-
-    @property
-    @_inject_session
-    def state(self, session: Session = None) -> State:
-        return session.exec(select(State)).first()
-
-    @_inject_session
-    def _init_state(self, session: Session = None) -> None:
-        if self.state is not None:
-            return
-        session.add(State())
+    def update_state(self, state: State, session: Session = None) -> None:
+        session.add(state)
         session.commit()
-
-    @property
-    def last_page(self) -> int:
-        return self.state.last_page
-
-    @_inject_session
-    def update_last_page(self, page: int, session: Session = None) -> None:
-        self.state.last_page = page
-        session.add(self.state)
-        session.commit()
-        session.refresh(self.state)
+        session.refresh(state)
 
     def close(self) -> None:
         self.engine.dispose()

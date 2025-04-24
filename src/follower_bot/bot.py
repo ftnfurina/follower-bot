@@ -13,7 +13,7 @@ from requests.exceptions import RequestException
 from .banner import print_banner
 from .github import fetch_follow_user, fetch_users
 from .log import init_logging
-from .model import User
+from .model import User, History, HistoryState
 from .settings import get_settings
 from .store import Store
 
@@ -37,21 +37,21 @@ scheduler.add_listener(lambda _: store.close(), EVENT_SCHEDULER_SHUTDOWN)
 
 def get_unfollowed_users(follow_count: int) -> Tuple[List[User], bool]:
     users = store.query_unfollowed_users(follow_count)
-    last_page = store.last_page
+    state = store.query_state()
 
     while len(users) < follow_count:
         logger.info("Not enough unfollowed users, starting to fetch more users...")
-        logger.debug(f"Last page: {last_page}")
-        last_page = last_page + 1
+        logger.debug(f"Last page: {state.last_page}")
+        state.last_page += 1
         search_users = fetch_users(
-            page=last_page,
+            page=state.last_page,
             per_page=settings.SEARCH_USERS_PER_PAGE,
             q=settings.SEARCH_QUERY,
             token=settings.GITHUB_TOKEN,
         )
-        add_count = store.add_users(search_users)
-        logger.success(f"Added {add_count} users to database")
-        store.update_last_page(last_page)
+        add_users = store.add_users(search_users)
+        logger.success(f"Added {len(add_users)} users to database")
+        store.update_state(state)
         users = store.query_unfollowed_users(follow_count)
         time.sleep(random.randint(2, 4))
 
@@ -64,7 +64,7 @@ def get_unfollowed_users(follow_count: int) -> Tuple[List[User], bool]:
 def is_follow_limit_reached() -> bool:
     if settings.FOLLOW_USER_MAX is None:
         return False
-    return store.followed_users_count >= settings.FOLLOW_USER_MAX
+    return store.query_followed_users_count() >= settings.FOLLOW_USER_MAX
 
 
 def follow_users(users: List[User]) -> List[User]:
@@ -113,29 +113,41 @@ def follow_users(users: List[User]) -> List[User]:
 )
 @logger.catch(reraise=False)
 def run_bot():
-    logger.info("Starting bot...")
+    history = History()
 
-    if is_follow_limit_reached():
-        logger.info(
-            f"Maximum followed users reached: {store.followed_users_count}/{settings.FOLLOW_USER_MAX}"
+    try:
+        logger.info("Starting bot...")
+
+        if is_follow_limit_reached():
+            logger.info(
+                f"Maximum followed users reached: {store.query_followed_users_count()}/{settings.FOLLOW_USER_MAX}"
+            )
+            scheduler.shutdown(wait=False)
+            return
+
+        follow_count = settings.JOB_FOLLOW_USER_BASE + random.randint(
+            0, settings.JOB_FOLLOW_USER_JITTER
         )
-        scheduler.shutdown(wait=False)
-        return
+        logger.debug(f"Follow count: {follow_count}")
+        users, is_over = get_unfollowed_users(follow_count)
+        followed_count = follow_users(users)
+        logger.info(f"Followed {followed_count} users")
+        history.followed_count = followed_count
 
-    follow_count = settings.JOB_FOLLOW_USER_BASE + random.randint(
-        0, settings.JOB_FOLLOW_USER_JITTER
-    )
-    logger.debug(f"Follow count: {follow_count}")
-    users, is_over = get_unfollowed_users(follow_count)
-    followed_count = follow_users(users)
-    logger.info(f"Followed {followed_count} users")
+        if is_over:
+            logger.info("Not enough unfollowed users, stopping job...")
+            scheduler.shutdown(wait=False)
+            return
 
-    if is_over:
-        logger.info("Not enough unfollowed users, stopping job...")
-        scheduler.shutdown(wait=False)
-        return
+        logger.info("Bot finished")
 
-    logger.info("Bot finished")
+    except Exception as e:
+        history.state = HistoryState.FAIL
+        history.message = str(e)
+        raise e
+    finally:
+        history.end_at = datetime.now()
+        store.add_history(history)
 
 
 def main():
