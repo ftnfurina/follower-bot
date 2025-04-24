@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 from typing import List, Optional
 
-from sqlmodel import Session, SQLModel, and_, create_engine, func, select
+from sqlmodel import Session, SQLModel, and_, create_engine, func, select, asc
 
 from .model import State, User
 
@@ -37,6 +37,7 @@ class Store:
         return session.exec(
             select(User)
             .where(and_(User.is_followed.is_(False), User.follow_fail_count < 3))
+            .order_by(asc(User.join_at))
             .limit(limit)
         ).all()
 
@@ -51,11 +52,13 @@ class Store:
         added_ids = [u.id for u in self.query_users(users)]
         add_users = [u for u in users if u.id not in added_ids]
         session.add_all(add_users)
+        [session.refresh(u) for u in add_users]
         return len(add_users)
 
     @_inject_session
     def update_user(self, user: User, session: Session = None) -> None:
         session.add(user)
+        session.refresh(user)
 
     @property
     @_inject_session
@@ -83,6 +86,7 @@ class Store:
     def update_last_page(self, page: int, session: Session = None) -> None:
         self.state.last_page = page
         session.add(self.state)
+        session.refresh(self.state)
 
     def close(self) -> None:
         self.engine.dispose()
