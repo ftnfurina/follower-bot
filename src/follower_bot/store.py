@@ -13,8 +13,8 @@ def _inject_session(func):
         with Session(self.engine) as session:
             try:
                 result = func(self, *args, **kwargs, session=session)
-                if session.new or session.dirty or session.deleted:
-                    session.commit()
+                # if session.new or session.dirty or session.deleted:
+                #     session.commit()
                 return result
             except Exception as e:
                 session.rollback()
@@ -52,12 +52,14 @@ class Store:
         added_ids = [u.id for u in self.query_users(users)]
         add_users = [u for u in users if u.id not in added_ids]
         session.add_all(add_users)
+        session.commit()
         [session.refresh(u) for u in add_users]
         return len(add_users)
 
     @_inject_session
     def update_user(self, user: User, session: Session = None) -> None:
         session.add(user)
+        session.commit()
         session.refresh(user)
 
     @property
@@ -77,6 +79,7 @@ class Store:
         if self.state is not None:
             return
         session.add(State())
+        session.commit()
 
     @property
     def last_page(self) -> int:
@@ -86,6 +89,7 @@ class Store:
     def update_last_page(self, page: int, session: Session = None) -> None:
         self.state.last_page = page
         session.add(self.state)
+        session.commit()
         session.refresh(self.state)
 
     def close(self) -> None:

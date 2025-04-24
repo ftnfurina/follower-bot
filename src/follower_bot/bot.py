@@ -84,11 +84,11 @@ def follow_users(users: List[User]) -> List[User]:
         try:
             is_followed = fetch_follow_user(user=user, token=settings.GITHUB_TOKEN)
             if is_followed:
+                logger.success(f"Followed user: {user.login}")
                 user.is_followed = True
                 user.followed_at = datetime.now()
                 store.update_user(user)
                 followed_count += 1
-                logger.success(f"Followed user: {user.login}")
             else:
                 follow_user_failed(user)
         except RequestException as e:
