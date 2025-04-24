@@ -14,10 +14,10 @@ from .banner import print_banner
 from .github import fetch_follow_user, fetch_users
 from .log import init_logging
 from .model import User
-from .settings import Settings
+from .settings import get_settings
 from .store import Store
 
-settings = Settings()
+settings = get_settings()
 scheduler = BackgroundScheduler()
 init_logging(settings.LOGURU_CONFIG_FILE)
 print_banner(settings.BANNER_FILE)

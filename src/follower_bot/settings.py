@@ -1,6 +1,7 @@
+import sys
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -74,3 +75,11 @@ class Settings(BaseSettings):
         default=None,
         description="Database log level",
     )
+
+
+def get_settings() -> Settings:
+    try:
+        return Settings()
+    except ValidationError as e:
+        print(f"Error loading settings: {e}")
+        sys.exit(1)
