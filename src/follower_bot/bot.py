@@ -3,6 +3,7 @@ import signal
 import time
 from datetime import datetime
 from typing import List, Tuple
+from functools import wraps
 
 from apscheduler.events import EVENT_SCHEDULER_SHUTDOWN
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -104,6 +105,24 @@ def follow_users(users: List[User]) -> List[User]:
     return followed_count
 
 
+def inject_history(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        history = History()
+        history.start_at = datetime.now()
+        try:
+            return func(*args, **kwargs, history=history)
+        except Exception as e:
+            history.state = HistoryState.FAIL
+            history.message = str(e)
+            raise e
+        finally:
+            history.end_at = datetime.now()
+            store.add_history(history)
+
+    return wrapper
+
+
 @scheduler.scheduled_job(
     "interval",
     id="follower-bot",
@@ -112,42 +131,34 @@ def follow_users(users: List[User]) -> List[User]:
     next_run_time=datetime.now() if settings.JOB_RUN_NOW else undefined,
 )
 @logger.catch(reraise=False)
-def run_bot():
-    history = History()
+@inject_history
+def run_bot(history: History):
+    logger.info("Starting bot...")
 
-    try:
-        logger.info("Starting bot...")
-
-        if is_follow_limit_reached():
-            logger.info(
-                f"Maximum followed users reached: {store.query_followed_users_count()}/{settings.FOLLOW_USER_MAX}"
-            )
-            scheduler.shutdown(wait=False)
-            return
-
-        follow_count = settings.JOB_FOLLOW_USER_BASE + random.randint(
-            0, settings.JOB_FOLLOW_USER_JITTER
+    if is_follow_limit_reached():
+        logger.info(
+            f"Maximum followed users reached: {store.query_followed_users_count()}/{settings.FOLLOW_USER_MAX}"
         )
-        logger.debug(f"Follow count: {follow_count}")
-        users, is_over = get_unfollowed_users(follow_count)
-        followed_count = follow_users(users)
-        logger.info(f"Followed {followed_count} users")
-        history.followed_count = followed_count
+        scheduler.shutdown(wait=False)
+        return
 
-        if is_over:
-            logger.info("Not enough unfollowed users, stopping job...")
-            scheduler.shutdown(wait=False)
-            return
+    follow_count = settings.JOB_FOLLOW_USER_BASE + random.randint(
+        0, settings.JOB_FOLLOW_USER_JITTER
+    )
+    logger.debug(f"Follow count: {follow_count}")
+    users, is_over = get_unfollowed_users(follow_count)
+    followed_count = follow_users(users)
+    logger.info(f"Followed {followed_count} users")
 
-        logger.info("Bot finished")
+    history.followed_count = followed_count
+    history.state = HistoryState.SUCCESS
 
-    except Exception as e:
-        history.state = HistoryState.FAIL
-        history.message = str(e)
-        raise e
-    finally:
-        history.end_at = datetime.now()
-        store.add_history(history)
+    if is_over:
+        logger.info("Not enough unfollowed users, stopping job...")
+        scheduler.shutdown(wait=False)
+        return
+
+    logger.info("Bot finished")
 
 
 def main():
