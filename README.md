@@ -29,9 +29,7 @@
 ### 🪟 Run on Windows
 
 > [!Note]
-> If using a custom Python environment, update the `<executable/>` path in [follower-bot-service.xml](./follower-bot-service.xml).
-
-Required tools: [Rye](https://github.com/astral-sh/rye) (Python environment manager) + [WinSW](https://github.com/winsw/winsw) (Windows service manager).
+> If using a custom Python environment, update the &lt;executable/&gt; path in [follower-bot-service.xml](./follower-bot-service.xml).
 
 ```shell
 # Create a virtual environment and install dependencies
@@ -57,6 +55,41 @@ docker run -d --name follower-bot -v "logs:/app/logs" -v "data:/app/data" follow
 # Stop the container
 docker stop follower-bot
 ```
+
+### 🧪 Development and Debugging
+
+Debugging in a virtual environment (recommended):
+
+```shell
+# Install dependencies
+rye sync
+# Run/Debug the bot
+rye run start [-h]
+```
+
+Debugging in a local environment:
+
+```shell
+# Install dependencies
+pip install --no-cache -r requirements.lock
+# Run/Debug the bot
+python -m follower_bot.bot [-h]
+```
+
+## 📦 Related Tools
+
++ [Rye](https://github.com/astral-sh/rye): Python environment manager
++ [WinSW](https://github.com/winsw/winsw): Windows service manager
++ [Github API](https://docs.github.com/en/rest): GitHub API reference
++ [pydantic](https://docs.pydantic.dev/latest/): Python data validation
++ [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/#settings-management): Settings management for Pydantic
++ [loguru](https://github.com/Delgan/loguru): Python logging library
++ [loguru-config](https://github.com/erezinman/loguru-config): Configuration for loguru
++ [requests](https://requests.readthedocs.io/en/latest/): HTTP library for Python
++ [ratelimit](https://github.com/tomasbasham/ratelimit): API Rate Limit Decorator
++ [apscheduler](https://github.com/agronholm/apscheduler): Task scheduling library for Python
++ [sqlmodel](https://sqlmodel.tiangolo.com/): SQL and ORM library for Python
++ [pyyaml](https://github.com/yaml/pyyaml): YAML parser and emitter for Python
 
 ## 🔗 References
 

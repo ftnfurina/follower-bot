@@ -31,8 +31,6 @@
 > [!Note]
 > 若是使用其他 Python 环境，请自行修改 [follower-bot-service.xml](./follower-bot-service.xml) 文件中 &lt;executable/&gt; 配置项的 Python 路径。
 
-相关工具：[Rye](https://github.com/astral-sh/rye)（Python 环境管理工具） + [WinSW](https://github.com/winsw/winsw) （Windows 服务管理工具）。
-
 ```shell
 # 生成虚拟环境并安装依赖
 rye sync
@@ -57,6 +55,41 @@ docker run -d --name follower-bot -v "logs:/app/logs" -v "data:/app/data" follow
 # 停止 Docker 容器
 docker stop follower-bot
 ```
+
+## 🧪 开发调试
+
+虚拟环境调试（推荐）：
+
+```shell
+# 安装依赖
+rye sync
+# 运行/调试程序
+rye run start [-h]
+```
+
+本机环境调试：
+
+```shell
+# 安装依赖
+pip install --no-cache -r requirements.lock
+# 运行/调试程序
+python -m follower_bot.bot [-h]
+```
+
+## 📦 相关工具
+
++ [Rye](https://github.com/astral-sh/rye)：Python 环境管理工具
++ [WinSW](https://github.com/winsw/winsw)：Windows 服务管理工具
++ [Github API](https://docs.github.com/zh/rest)：GitHub API 文档
++ [pydantic](https://docs.pydantic.dev/latest/)：Python 数据校验
++ [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/#settings-management)：配置管理
++ [loguru](https://github.com/Delgan/loguru)：Python 日志库
++ [loguru-config](https://github.com/erezinman/loguru-config)：loguru 日志配置
++ [requests](https://requests.readthedocs.io/en/latest/)：Python HTTP 客户端库
++ [ratelimit](https://github.com/tomasbasham/ratelimit)：API 速率限制装饰器
++ [apscheduler](https://github.com/agronholm/apscheduler)：Python 任务调度库
++ [sqlmodel](https://sqlmodel.tiangolo.com/)：Python SQL ORM 库
++ [pyyaml](https://github.com/yaml/pyyaml): Python YAML 解析库
 
 ## 🔗 参考链接
 

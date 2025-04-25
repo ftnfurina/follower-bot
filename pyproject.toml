@@ -1,6 +1,6 @@
 [project]
 name = "follower-bot"
-version = "0.2.2"
+version = "0.2.3"
 description = "An automated bot for following GitHub users."
 authors = [{ name = "ftnfurina", email = "ftnfurina@gmail.com" }]
 dependencies = [

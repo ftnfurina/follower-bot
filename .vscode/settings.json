@@ -1,18 +1,20 @@
 {
   "cSpell.words": [
+    "apscheduler",
     "commitizen",
     "ftnfurina",
     "levelname",
     "levelno",
+    "logpath",
     "loguru",
     "mkdocs",
     "pycache",
     "pydantic",
     "pymysql",
     "pyyaml",
-    "venv",
+    "sqlmodel",
     "startmode",
-    "logpath"
+    "venv"
   ],
   "cSpell.ignorePaths": [
     ".venv",
