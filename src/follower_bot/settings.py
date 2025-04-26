@@ -1,13 +1,123 @@
 import sys
-from typing import Optional
+from typing import Optional, Literal
 
-from pydantic import Field, ValidationError
+from pydantic import Field, ValidationError, BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from apscheduler.triggers.base import BaseTrigger
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+
+
+class TriggerSettings(BaseModel):
+    """
+    Settings for the trigger.
+    """
+
+    name: Literal["interval", "cron"] = Field(
+        default="interval",
+        description="Type of the trigger",
+    )
+    weeks: int = Field(default=0, ge=0, description="[interval] Weeks")
+    days: int = Field(default=0, ge=0, description="[interval] Days")
+    hours: int = Field(default=0, ge=0, description="[interval] Hours")
+    minutes: int = Field(default=0, ge=0, description="[interval] Minutes")
+    seconds: int = Field(default=0, ge=0, description="[interval] Seconds")
+    jitter: Optional[int] = Field(
+        default=None,
+        ge=0,
+        description="[interval] Jitter for the interval trigger",
+    )
+    expr: str = Field(
+        default="* * * * *",
+        description="[cron] Cron expression for the trigger",
+    )
+    timezone: Optional[str] = Field(
+        default=None,
+        description="[interval,cron] Timezone for the trigger",
+    )
+
+
+class FollowingBotSettings(BaseModel):
+    """
+    Settings for the following bot.
+    """
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable the following bot",
+    )
+    trigger: TriggerSettings = Field(
+        default_factory=TriggerSettings, description="Settings for the trigger"
+    )
+    run_now: bool = Field(
+        default=True,
+        description="Run the trigger immediately",
+    )
+    follow_max: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Maximum number of follows",
+    )
+    per_follow_base: int = Field(
+        default=20,
+        ge=1,
+        description="The basic number of follows to do per run",
+    )
+    per_follow_jitter: int = Field(
+        default=5,
+        ge=0,
+        description="The jitter for the number of follows to do per run",
+    )
+    search_query: str = Field(
+        default="followers:>10 repos:>2",
+        description="Search query for GitHub API",
+    )
+
+
+class FollowerBotSettings(BaseModel):
+    """
+    Settings for the follower bot.
+    """
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable the follower bot",
+    )
+    trigger: TriggerSettings = Field(
+        default_factory=TriggerSettings, description="Settings for the trigger"
+    )
+    run_now: bool = Field(
+        default=True,
+        description="Run the trigger immediately",
+    )
+    follow_back: bool = Field(
+        default=True,
+        description="Follow back the followers",
+    )
+    unfollow_unfollowed: bool = Field(
+        default=True,
+        description="Unfollow unfollowed users",
+    )
+
+
+class DatabaseSettings(BaseModel):
+    """
+    Settings for the database.
+    """
+
+    url: str = Field(
+        default="sqlite:///data/store.db",
+        description="Database URL",
+    )
+    log_level: Optional[str] = Field(
+        default=None,
+        description="Log level for the database",
+    )
 
 
 class Settings(BaseSettings):
     """
-    Follower Bot: An automated bot for following GitHub users.
+    Follower Bot: An automated bot for following and reciprocating follows with GitHub users.
     """
 
     model_config = SettingsConfigDict(
@@ -15,65 +125,33 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         cli_parse_args=True,
         cli_prog_name="follower-bot",
+        env_nested_delimiter=".",
         cli_kebab_case=True,
+        extra="ignore",
     )
 
-    APP_TITLE: str = Field(default="Follower Bot", description="Application title")
-    GITHUB_TOKEN: str = Field(
+    github_token: str = Field(
         description="GitHub token for authentication",
     )
-    BANNER_FILE: Optional[str] = Field(
-        default="banner.txt", deprecated="Banner file path"
+    banner_file: Optional[str] = Field(
+        default="banner.txt",
+        description="Path to the banner file to display on the console",
     )
-    LOGURU_CONFIG_FILE: Optional[str] = Field(
+    loguru_config_file: Optional[str] = Field(
         default="loguru.yaml",
-        description="Loguru configuration file path",
+        description="Path to the loguru configuration file",
     )
-    JOB_INTERVAL: int = Field(
-        default=4 * 60 * 60,
-        ge=60 * 60,
-        description="Interval between job runs in seconds (>= 3600)",
+    database: DatabaseSettings = Field(
+        default_factory=DatabaseSettings,
+        description="Settings for the database",
     )
-    JOB_JITTER: int = Field(
-        default=60 * 60,
-        ge=0,
-        description="Jitter for job interval in seconds (>= 0)",
+    following_bot: FollowingBotSettings = Field(
+        default_factory=FollowingBotSettings,
+        description="Settings for the following bot",
     )
-    JOB_FOLLOW_USER_BASE: int = Field(
-        default=20,
-        ge=1,
-        description="Base number of users to follow per job run (>= 1)",
-    )
-    JOB_FOLLOW_USER_JITTER: int = Field(
-        default=5,
-        ge=0,
-        description="Jitter for number of users to follow in job run (>= 0)",
-    )
-    JOB_RUN_NOW: bool = Field(
-        default=True,
-        description="Run job immediately",
-    )
-    FOLLOW_USER_MAX: Optional[int] = Field(
-        default=None,
-        ge=1,
-        description="Maximum number of users to follow (>= 1)",
-    )
-    SEARCH_USERS_PER_PAGE: int = Field(
-        default=100,
-        ge=1,
-        le=100,
-        description="Number of users to fetch per page (1-100)",
-    )
-    SEARCH_QUERY: str = Field(
-        description="Search query for GitHub API",
-    )
-    DATABASE_URL: str = Field(
-        default="sqlite:///data/follower-bot.db",
-        description="Database URL",
-    )
-    DATABASE_LOG_LEVEL: Optional[str] = Field(
-        default=None,
-        description="Database log level",
+    follower_bot: FollowerBotSettings = Field(
+        default_factory=FollowerBotSettings,
+        description="Settings for the follower bot",
     )
 
 
@@ -83,3 +161,21 @@ def get_settings() -> Settings:
     except ValidationError as e:
         print(f"Error loading settings: {e}")
         sys.exit(1)
+
+
+def create_trigger(trigger_settings: TriggerSettings) -> BaseTrigger:
+    if trigger_settings.name == "cron":
+        return CronTrigger.from_crontab(
+            expr=trigger_settings.expr,
+            timezone=trigger_settings.timezone,
+        )
+    elif trigger_settings.name == "interval":
+        return IntervalTrigger(
+            weeks=trigger_settings.weeks,
+            days=trigger_settings.days,
+            hours=trigger_settings.hours,
+            minutes=trigger_settings.minutes,
+            seconds=trigger_settings.seconds,
+            jitter=trigger_settings.jitter,
+            timezone=trigger_settings.timezone,
+        )

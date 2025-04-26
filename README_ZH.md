@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🤖 Follower Bot</h1>
-  <p><em><b>一个自动关注 GitHub 用户的机器人。</b></em></p>
+  <p><em><b>一个自动关注/回关 GitHub 用户的机器人。</b></em></p>
   <img src="https://api.visitorbadge.io/api/combined?path=https://github.com/ftnfurina/follower-bot&label=VISITORS&style=flat-square&countColor=%23f3722c" alt="visitors"/>
   <div>
     <a href="./README_ZH.md">中文</a> |

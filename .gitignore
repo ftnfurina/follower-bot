@@ -11,4 +11,4 @@ wheels/
 .ruff_cache
 *.log
 .env.local
-follower-bot.db
+store.db
