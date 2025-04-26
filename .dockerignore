@@ -6,6 +6,6 @@ __pycache__
 *.log
 dist
 logs
-follower-bot.db
+store.db
 follower-bot-service.exe
 follower-bot-service.xml

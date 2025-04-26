@@ -1,28 +1,24 @@
-import random
 import signal
 import time
-from datetime import datetime
-from typing import List, Tuple
-from functools import wraps
 
 from apscheduler.events import EVENT_SCHEDULER_SHUTDOWN
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.util import undefined
 from loguru import logger
-from requests.exceptions import RequestException
 
 from .banner import print_banner
-from .github import fetch_follow_user, fetch_users
+from .bots import FollowerBot, FollowingBot
 from .log import init_logging
-from .model import User, History, HistoryState
 from .settings import get_settings
 from .store import Store
 
 settings = get_settings()
+store = Store(url=settings.database.url, log_level=settings.database.log_level)
+
 scheduler = BackgroundScheduler()
-init_logging(settings.LOGURU_CONFIG_FILE)
-print_banner(settings.BANNER_FILE)
-store = Store(settings.DATABASE_URL, settings.DATABASE_LOG_LEVEL)
+scheduler.add_listener(lambda _: store.close(), EVENT_SCHEDULER_SHUTDOWN)
+
+init_logging(settings.loguru_config_file)
+print_banner(settings.banner_file)
 
 
 def signal_handler(_signal, _frame):
@@ -33,135 +29,16 @@ def signal_handler(_signal, _frame):
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
-scheduler.add_listener(lambda _: store.close(), EVENT_SCHEDULER_SHUTDOWN)
-
-
-def get_unfollowed_users(follow_count: int) -> Tuple[List[User], bool]:
-    users = store.query_unfollowed_users(follow_count)
-    state = store.query_state()
-
-    while len(users) < follow_count:
-        logger.info("Not enough unfollowed users, starting to fetch more users...")
-        logger.debug(f"Last page: {state.last_page}")
-        state.last_page += 1
-        search_users = fetch_users(
-            page=state.last_page,
-            per_page=settings.SEARCH_USERS_PER_PAGE,
-            q=settings.SEARCH_QUERY,
-            token=settings.GITHUB_TOKEN,
-        )
-        add_users = store.add_users(search_users)
-        logger.success(f"Added {len(add_users)} users to database")
-        store.update_state(state)
-        users = store.query_unfollowed_users(follow_count)
-        time.sleep(random.randint(2, 4))
-
-        if len(search_users) < settings.SEARCH_USERS_PER_PAGE:
-            return users, True
-
-    return users, False
-
-
-def is_follow_limit_reached() -> bool:
-    if settings.FOLLOW_USER_MAX is None:
-        return False
-    return store.query_followed_users_count() >= settings.FOLLOW_USER_MAX
-
-
-def follow_users(users: List[User]) -> List[User]:
-    def follow_user_failed(user: User):
-        user.follow_fail_count += 1
-        logger.warning(f"Failed to follow user: {user.login}")
-        store.update_user(user)
-
-    followed_count = 0
-
-    for i, user in enumerate(users):
-        logger.info(f"[{i + 1}/{len(users)}]Starting to follow user: {user.login}")
-
-        if scheduler.state == 0:
-            return followed_count
-
-        try:
-            is_followed = fetch_follow_user(user=user, token=settings.GITHUB_TOKEN)
-            if is_followed:
-                logger.success(f"Followed user: {user.login}")
-                user.is_followed = True
-                user.followed_at = datetime.now()
-                store.update_user(user)
-                followed_count += 1
-            else:
-                follow_user_failed(user)
-        except RequestException as e:
-            if e.response is None or e.response.status_code in [401, 403, 422]:
-                follow_user_failed(user)
-                raise e
-            time.sleep(random.randint(2, 4))
-            logger.warning(f"Failed to follow user: {user.login}, continuing...")
-            continue
-
-        time.sleep(random.randint(2, 4))
-
-    return followed_count
-
-
-def inject_history(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        history = History()
-        history.start_at = datetime.now()
-        try:
-            return func(*args, **kwargs, history=history)
-        except Exception as e:
-            history.state = HistoryState.FAIL
-            history.message = str(e)
-            raise e
-        finally:
-            history.end_at = datetime.now()
-            store.add_history(history)
-
-    return wrapper
-
-
-@scheduler.scheduled_job(
-    "interval",
-    id="follower-bot",
-    seconds=settings.JOB_INTERVAL,
-    jitter=settings.JOB_JITTER,
-    next_run_time=datetime.now() if settings.JOB_RUN_NOW else undefined,
-)
-@logger.catch(reraise=False)
-@inject_history
-def run_bot(history: History):
-    logger.info("Starting bot...")
-
-    if is_follow_limit_reached():
-        logger.info(
-            f"Maximum followed users reached: {store.query_followed_users_count()}/{settings.FOLLOW_USER_MAX}"
-        )
-        scheduler.shutdown(wait=False)
-        return
-
-    follow_count = settings.JOB_FOLLOW_USER_BASE + random.randint(
-        0, settings.JOB_FOLLOW_USER_JITTER
-    )
-    logger.debug(f"Follow count: {follow_count}")
-    users, is_over = get_unfollowed_users(follow_count)
-    followed_count = follow_users(users)
-    logger.info(f"Followed {followed_count} users")
-
-    history.followed_count = followed_count
-    history.state = HistoryState.SUCCESS
-
-    if is_over:
-        logger.info("Not enough unfollowed users, stopping job...")
-        scheduler.shutdown(wait=False)
-        return
-
-    logger.info("Bot finished")
+FollowingBot(settings=settings, store=store, scheduler=scheduler).join_scheduler()
+FollowerBot(settings=settings, store=store, scheduler=scheduler).join_scheduler()
 
 
 def main():
+    jobs = scheduler.get_jobs()
+    if len(jobs) == 0:
+        logger.info("No jobs are enabled, exiting...")
+        return
+
     scheduler.start()
     while len(scheduler.get_jobs()) > 0:
         time.sleep(0.5)

@@ -2,94 +2,143 @@ import logging
 from functools import wraps
 from typing import List, Optional
 
-from sqlmodel import Session, SQLModel, and_, create_engine, func, select, asc
+from sqlmodel import (
+    Session,
+    SQLModel,
+    and_,
+    asc,
+    create_engine,
+    select,
+)
+from sqlmodel import (
+    func as model_func,
+)
 
-from .model import State, User, History
+from .model import Follower, Following, History, State
 
 
 def _inject_session(func):
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        with Session(self.engine) as session:
+    def wrapper(self: "Store", *args, **kwargs):
+        if "session" in kwargs:
             try:
-                result = func(self, *args, **kwargs, session=session)
-                # if session.new or session.dirty or session.deleted:
-                #     session.commit()
-                return result
+                return func(self, *args, **kwargs)
             except Exception as e:
-                session.rollback()
+                kwargs["session"].rollback()
                 raise e
+        else:
+            with Session(self.engine) as session:
+                try:
+                    return func(self, *args, **kwargs, session=session)
+                except Exception as e:
+                    session.rollback()
+                    raise e
 
     return wrapper
 
 
 class Store:
-    def __init__(self, db_url: str, db_log_level: Optional[str]):
-        self.engine = create_engine(db_url)
-        if db_log_level is not None:
-            logging.getLogger("sqlalchemy").setLevel(db_log_level)
+    def __init__(self, url: str, log_level: Optional[str]):
+        self.engine = create_engine(url)
+        if log_level is not None:
+            logging.getLogger("sqlalchemy").setLevel(log_level.upper())
         SQLModel.metadata.create_all(self.engine)
         self._init_state()
 
     @_inject_session
-    def query_unfollowed_users(self, limit: int, session: Session = None) -> List[User]:
-        # Query unfollowed users with follow_fail_count < 3
+    def _init_state(self, session: Session = None):
+        state = session.exec(select(State)).one_or_none()
+        if state is None:
+            state = State()
+            session.add(state)
+            session.commit()
+
+    @_inject_session
+    def add_history(self, history: History, session: Session = None):
+        session.add(history)
+        session.commit()
+
+    @_inject_session
+    def query_state(self, session: Session = None) -> State:
+        return session.exec(select(State)).one()
+
+    @_inject_session
+    def query_following_count(self, session: Session = None) -> int:
         return session.exec(
-            select(User)
-            .where(and_(User.is_followed.is_(False), User.follow_fail_count < 3))
-            .order_by(asc(User.join_at))
+            select(model_func.count(Following.id)).where(Following.followed.is_(True))
+        )
+
+    @_inject_session
+    def query_unfollowed_following(
+        self, limit: int, session: Session = None
+    ) -> List[Following]:
+        return session.exec(
+            select(Following)
+            .where(and_(Following.followed.is_(False), Following.fail_count < 3))
+            .order_by(asc(Following.join_date))
             .limit(limit)
         ).all()
 
     @_inject_session
-    def query_users(self, users: List[User], session: Session = None) -> List[User]:
-        return session.exec(
-            select(User).where(User.id.in_([u.id for u in users]))
-        ).all()
+    def add_followings(
+        self, followings: List[Following], session: Session = None
+    ) -> None:
+        for following in followings:
+            if session.get(Following, following.id) is not None:
+                continue
 
-    @_inject_session
-    def query_followed_users_count(self, session: Session = None) -> int:
-        return session.exec(
-            select(func.count(User.id)).where(User.is_followed.is_(True))
-        ).one()
-
-    @_inject_session
-    def query_state(self, session: Session = None) -> State:
-        return session.exec(select(State)).first()
-
-    @_inject_session
-    def add_users(self, users: List[User], session: Session = None) -> List[User]:
-        added_ids = [u.id for u in self.query_users(users)]
-        add_users = [u for u in users if u.id not in added_ids]
-        session.add_all(add_users)
-        session.commit()
-        [session.refresh(u) for u in add_users]
-        return add_users
-
-    @_inject_session
-    def add_history(self, history: History, session: Session = None) -> None:
-        session.add(history)
-        session.commit()
-        session.refresh(history)
-
-    @_inject_session
-    def _init_state(self, session: Session = None) -> None:
-        if self.query_state() is not None:
-            return
-        session.add(State())
-        session.commit()
-
-    @_inject_session
-    def update_user(self, user: User, session: Session = None) -> None:
-        session.add(user)
-        session.commit()
-        session.refresh(user)
+            session.add(following)
+            session.commit()
+            session.refresh(following)
 
     @_inject_session
     def update_state(self, state: State, session: Session = None) -> None:
         session.add(state)
         session.commit()
         session.refresh(state)
+
+    @_inject_session
+    def update_following(self, following: Following, session: Session = None):
+        session.add(following)
+        session.commit()
+        session.refresh(following)
+
+    @_inject_session
+    def upsert_followers(self, followers: List[Follower], session: Session = None):
+        for follower in followers:
+            db_follower = session.get(Follower, follower.id)
+            if db_follower is not None:
+                db_follower.search_id = follower.search_id
+                db_follower.follower = True
+                db_follower.follow_date = follower.follow_date
+                session.add(db_follower)
+                session.commit()
+                continue
+
+            session.add(follower)
+            session.commit()
+            session.refresh(follower)
+
+    @_inject_session
+    def query_unfollow_followers(
+        self, search_id: int, session: Session = None
+    ) -> List[Follower]:
+        return session.exec(
+            select(Follower).where(
+                and_(Follower.search_id != search_id, Follower.follower.is_(True))
+            )
+        ).all()
+
+    @_inject_session
+    def update_follower(self, follower: Follower, session: Session = None) -> None:
+        session.add(follower)
+        session.commit()
+        session.refresh(follower)
+
+    @_inject_session
+    def delete_following(self, following_id: int, session: Session = None) -> None:
+        session.delete(session.get(Following, following_id))
+        session.commit()
 
     def close(self) -> None:
         self.engine.dispose()

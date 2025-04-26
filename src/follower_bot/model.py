@@ -1,31 +1,85 @@
 from datetime import datetime
-from typing import Optional
 from enum import IntEnum
+from typing import List, Optional
 
+from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
 
-class User(SQLModel, table=True):
+class User(BaseModel):
+    id: int = Field(description="User ID")
+    login: str = Field(description="User login")
+
+
+class FollowingCreateBy(IntEnum):
+    FOLLOWING_BOT = 1
+    FOLLOWER_BOT = 2
+
+
+class Following(SQLModel, table=True):
     id: Optional[int] = Field(default=None, description="User ID", primary_key=True)
     login: str = Field(description="User login", unique=True)
-    is_followed: bool = Field(
+    create_by: FollowingCreateBy = Field(description="Create by")
+    followed: bool = Field(
         default=False, description="Whether the user is followed or not"
     )
-    join_at: datetime = Field(default_factory=datetime.now, description="Join date")
-    followed_at: Optional[datetime] = Field(
+    join_date: datetime = Field(
+        default_factory=datetime.now, description="Join date of the user"
+    )
+    followed_date: Optional[datetime] = Field(
         default=None, description="Date when the user was followed"
     )
-    follow_fail_count: int = Field(
+    fail_count: int = Field(
         default=0, description="Number of times the user failed to follow"
     )
 
 
-class State(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    last_page: int = Field(
-        default=0,
-        description="Last page used to search users",
+def user2following(user: User, create_by: FollowingCreateBy) -> Following:
+    return Following(id=user.id, login=user.login, create_by=create_by)
+
+
+def users2followings(
+    users: List[User], create_by: FollowingCreateBy
+) -> List[Following]:
+    return [user2following(user, create_by) for user in users]
+
+
+class Follower(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, description="User ID", primary_key=True)
+    login: str = Field(description="User login", unique=True)
+    join_date: datetime = Field(
+        default_factory=datetime.now, description="Join date of the user"
     )
+    follower: bool = Field(
+        default=True, description="Whether the user is a follower or not"
+    )
+    follow_date: datetime = Field(
+        default_factory=datetime.now, description="Date when the user was followed"
+    )
+    search_id: int = Field(description="Search ID")
+    unfollow_count: int = Field(
+        default=0, description="Number of times the user unfollow"
+    )
+
+
+def user2follower(user: User, search_id: int) -> Follower:
+    return Follower(id=user.id, login=user.login, search_id=search_id)
+
+
+def users2followers(users: List[User], search_id: int) -> List[Follower]:
+    return [user2follower(user, search_id) for user in users]
+
+
+class State(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, description="State ID", primary_key=True)
+    following_last_page: int = Field(default=1, description="Last page of following")
+    follower_last_page: int = Field(default=1, description="Last page of follower")
+    follower_search_id: int = Field(default=-1, description="Search ID")
+
+
+class HistoryType(IntEnum):
+    FOLLOWING = 1
+    FOLLOWER = 2
 
 
 class HistoryState(IntEnum):
@@ -34,16 +88,14 @@ class HistoryState(IntEnum):
 
 
 class History(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    start_at: datetime = Field(
-        default_factory=datetime.now, description="Date when the job was run"
+    id: Optional[int] = Field(default=None, description="History ID", primary_key=True)
+    type: HistoryType = Field(description="History type")
+    start_date: datetime = Field(
+        default_factory=datetime.now, description="Start date of the history"
     )
-    end_at: datetime = Field(
-        default_factory=datetime.now, description="Date when the job finished"
+    end_date: datetime = Field(
+        default_factory=datetime.now, description="End date of the history"
     )
-    state: HistoryState = Field(
-        default=HistoryState.SUCCESS,
-        description="State of the job",
-    )
+    state: HistoryState = Field(default=HistoryState.SUCCESS, description="Job state")
     message: str = Field(default="", description="Job failure message")
-    followed_count: int = Field(default=0, description="Number of followed users")
+    count: int = Field(default=0, description="Number of users processed")

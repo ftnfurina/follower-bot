@@ -1,7 +1,7 @@
 [project]
 name = "follower-bot"
-version = "0.2.4"
-description = "An automated bot for following GitHub users."
+version = "1.0.0"
+description = "An automated bot for following and reciprocating follows with GitHub users."
 authors = [{ name = "ftnfurina", email = "ftnfurina@gmail.com" }]
 dependencies = [
   "pydantic>=2.11.2",
