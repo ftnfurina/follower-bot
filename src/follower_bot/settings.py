@@ -68,10 +68,6 @@ class FollowingBotSettings(BaseModel):
         ge=0,
         description="The jitter for the number of follows to do per run",
     )
-    search_query: str = Field(
-        default="followers:>10 repos:>2",
-        description="Search query for GitHub API",
-    )
 
 
 class FollowerBotSettings(BaseModel):

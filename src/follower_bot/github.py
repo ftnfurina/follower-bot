@@ -26,20 +26,19 @@ def _fetch(
 
 
 def get_search_users(
-    page: int, q: str, token: str, per_page: int = PER_PAGE_MAX
+    since: int, token: str, per_page: int = PER_PAGE_MAX
 ) -> List[User]:
-    # https://docs.github.com/en/rest/search/search#search-users
-    url = "https://api.github.com/search/users"
+    # https://docs.github.com/zh/rest/users/users?apiVersion=2022-11-28#list-users
+    url = "https://api.github.com/users"
     params = {
-        "page": page,
+        "since": since,
         "per_page": per_page,
-        "q": q,
     }
     headers = _create_headers(token)
     response: requests.Response = _fetch("GET", url, headers=headers, params=params)
     response.raise_for_status()
     data = response.json()
-    return [User(**user) for user in data["items"]]
+    return [User(**user) for user in data]
 
 
 def put_user_following(user_login: str, token: str) -> bool:

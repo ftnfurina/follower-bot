@@ -51,12 +51,11 @@ class FollowingBot(Bot):
             logger.debug(
                 f"Not enough unfollowed followings: {len(followings)}. Start fetch more users"
             )
-            logger.debug(f"Last page: {state.following_last_page}")
+            logger.debug(f"Last page: {state.following_last_since}")
 
             users = get_search_users(
-                page=state.following_last_page,
+                since=state.following_last_since,
                 token=self.settings.github_token,
-                q=self.settings.following_bot.search_query,
             )
 
             self.store.add_followings(
@@ -64,14 +63,14 @@ class FollowingBot(Bot):
             )
 
             logger.success(f"Fetched {len(users)} users")
-            state.following_last_page += 1
-            self.store.update_state(state)
 
             followings = self.store.query_unfollowed_following(count)
 
             if len(users) < PER_PAGE_MAX:
                 return True, followings
 
+            state.following_last_since = users[-1].id
+            self.store.update_state(state)
             self.sleep()
 
         return False, followings

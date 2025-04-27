@@ -72,7 +72,7 @@ def users2followers(users: List[User], search_id: int) -> List[Follower]:
 
 class State(SQLModel, table=True):
     id: Optional[int] = Field(default=None, description="State ID", primary_key=True)
-    following_last_page: int = Field(default=1, description="Last page of following")
+    following_last_since: int = Field(default=0, description="Last since of following")
     follower_last_page: int = Field(default=1, description="Last page of follower")
     follower_search_id: int = Field(default=-1, description="Search ID")
 
