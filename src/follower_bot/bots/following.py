@@ -96,8 +96,8 @@ class FollowingBot(Bot):
                 following.followed_date = datetime.now()
             except RequestException as e:
                 logger.warning(f"Failed to follow: {following.login}")
+                following.fail_count += 1
                 if e.response is None or e.response.status_code in [401, 403, 422]:
-                    following.fail_count += 1
                     raise e
                 self.sleep(4, 6)
                 continue
