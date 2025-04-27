@@ -22,6 +22,7 @@ class FollowingBot(Bot):
             self.exec,
             trigger=create_trigger(self.settings.following_bot.trigger),
             id="following-bot",
+            misfire_grace_time=60,
             next_run_time=datetime.now()
             if self.settings.following_bot.run_now
             else undefined,
