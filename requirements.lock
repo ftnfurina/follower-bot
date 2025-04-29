@@ -41,10 +41,11 @@ python-dotenv==1.1.0
     # via pydantic-settings
 pyyaml==6.0.2
     # via follower-bot
-ratelimit==2.2.1
+rate-keeper==0.2.0
     # via follower-bot
 requests==2.32.3
     # via follower-bot
+    # via rate-keeper
 sqlalchemy==2.0.40
     # via sqlmodel
 sqlmodel==0.0.24

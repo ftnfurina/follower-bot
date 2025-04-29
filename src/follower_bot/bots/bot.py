@@ -1,5 +1,3 @@
-import random
-import time
 from datetime import datetime
 from functools import wraps
 
@@ -42,9 +40,6 @@ class Bot:
 
     def is_stopped(self) -> bool:
         return self.scheduler.state == STATE_STOPPED
-
-    def sleep(self, min: int = 2, max: int = 4):
-        time.sleep(random.randint(min, max))
 
     def shutdown(self):
         self.scheduler.shutdown(wait=False)

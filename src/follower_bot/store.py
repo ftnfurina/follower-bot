@@ -14,7 +14,7 @@ from sqlmodel import (
     func as model_func,
 )
 
-from .model import Follower, Following, History, State, FollowingCreateBy
+from .model import Follower, Following, FollowingCreateBy, History, State
 
 
 def _inject_session(func):

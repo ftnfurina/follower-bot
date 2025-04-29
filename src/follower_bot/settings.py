@@ -1,11 +1,11 @@
 import sys
-from typing import Optional, Literal
+from typing import Literal, Optional
 
-from pydantic import Field, ValidationError, BaseModel
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from apscheduler.triggers.base import BaseTrigger
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
+from pydantic import BaseModel, Field, ValidationError
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class TriggerSettings(BaseModel):

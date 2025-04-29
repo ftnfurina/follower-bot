@@ -86,7 +86,7 @@ python -m follower_bot.bot [-h]
 + [loguru](https://github.com/Delgan/loguru): Python logging library
 + [loguru-config](https://github.com/erezinman/loguru-config): Configuration for loguru
 + [requests](https://requests.readthedocs.io/en/latest/): HTTP library for Python
-+ [ratelimit](https://github.com/tomasbasham/ratelimit): API Rate Limit Decorator
++ [rate-keeper](https://github.com/ftnfurina/rate-keeper): API Rate Keeper Decorator
 + [apscheduler](https://github.com/agronholm/apscheduler): Task scheduling library for Python
 + [sqlmodel](https://sqlmodel.tiangolo.com/): SQL and ORM library for Python
 + [pyyaml](https://github.com/yaml/pyyaml): YAML parser and emitter for Python

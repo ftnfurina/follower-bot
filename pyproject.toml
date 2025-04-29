@@ -1,6 +1,6 @@
 [project]
 name = "follower-bot"
-version = "1.2.0"
+version = "1.2.1"
 description = "An automated bot for following and reciprocating follows with GitHub users."
 authors = [{ name = "ftnfurina", email = "ftnfurina@gmail.com" }]
 dependencies = [
@@ -9,7 +9,7 @@ dependencies = [
   "loguru>=0.7.3",
   "loguru-config>=0.1.0",
   "requests>=2.32.3",
-  "ratelimit>=2.2.1",
+  "rate-keeper>=0.2.0",
   "apscheduler>=3.11.0",
   "sqlmodel>=0.0.24",
   "pyyaml>=6.0.2",

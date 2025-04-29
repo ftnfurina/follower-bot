@@ -86,7 +86,7 @@ python -m follower_bot.bot [-h]
 + [loguru](https://github.com/Delgan/loguru)：Python 日志库
 + [loguru-config](https://github.com/erezinman/loguru-config)：loguru 日志配置
 + [requests](https://requests.readthedocs.io/en/latest/)：Python HTTP 客户端库
-+ [ratelimit](https://github.com/tomasbasham/ratelimit)：API 速率限制装饰器
++ [rate-keeper](https://github.com/ftnfurina/rate-keeper)：API 速率维持装饰器
 + [apscheduler](https://github.com/agronholm/apscheduler)：Python 任务调度库
 + [sqlmodel](https://sqlmodel.tiangolo.com/)：Python SQL ORM 库
 + [pyyaml](https://github.com/yaml/pyyaml): Python YAML 解析库

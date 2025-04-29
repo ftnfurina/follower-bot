@@ -1,11 +1,18 @@
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 import requests
-from ratelimit import limits, sleep_and_retry
+from loguru import logger
+from rate_keeper import RateKeeper
 
 from .model import User
 
 PER_PAGE_MAX = 100
+
+# UTC timestamp clock
+timestamp_clock = datetime.now(timezone.utc).timestamp
+# https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
+rate_keeper = RateKeeper(limit=5000, period=3600, clock=timestamp_clock)
 
 
 def _create_headers(token: str) -> Dict[str, str]:
@@ -16,13 +23,27 @@ def _create_headers(token: str) -> Dict[str, str]:
     }
 
 
-# https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
-@sleep_and_retry
-@limits(calls=5000, period=3600)
+@rate_keeper.decorator
 def _fetch(
     method: str, url: str, headers: Optional[Dict] = None, params: Optional[Dict] = None
 ) -> requests.Response:
-    return requests.request(method, url, headers=headers, params=params)
+    logger.debug(f"Delay for {rate_keeper.delay_time:.2f} seconds")
+    response = requests.request(method, url, headers=headers, params=params)
+
+    headers_map = {
+        "x-ratelimit-limit": rate_keeper.update_limit,
+        "x-ratelimit-used": rate_keeper.update_used,
+        "x-ratelimit-reset": rate_keeper.update_reset,
+    }
+
+    for key, value in response.headers.items():
+        lower_key = key.lower()
+        if lower_key in headers_map:
+            headers_map[lower_key](int(value))
+
+    logger.debug(f"Recommended delay : {rate_keeper.recommend_delay:.2f} seconds")
+    logger.debug(f"Rate Keeper: {rate_keeper}")
+    return response
 
 
 def get_search_users(

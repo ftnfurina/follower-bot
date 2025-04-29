@@ -85,7 +85,6 @@ class FollowingBot(Bot):
 
             state.following_last_since = users[-1].id
             self.store.update_state(state)
-            self.sleep()
 
         return False, followings
 
@@ -112,12 +111,9 @@ class FollowingBot(Bot):
                 following.fail_count += 1
                 if e.response is None or e.response.status_code in [401, 403, 422]:
                     raise e
-                self.sleep(4, 6)
                 continue
             finally:
                 self.store.update_following(following)
-
-            self.sleep()
 
     @logger.catch(reraise=False)
     @inject_history(HistoryType.FOLLOWING)

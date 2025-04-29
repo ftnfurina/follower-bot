@@ -52,10 +52,7 @@ class FollowerBot(Bot):
                 logger.warning(f"Failed to unfollow: {follower.login}")
                 if e.response is None or e.response.status_code in [401, 403, 422]:
                     raise e
-                self.sleep(4, 6)
                 continue
-
-            self.sleep()
 
     def _query_followers(self, search_id: int, history: History, state: State):
         while True:
@@ -81,8 +78,6 @@ class FollowerBot(Bot):
                 state.follower_last_page = 1
                 logger.info("Search followers has finished")
                 break
-
-            self.sleep()
 
     @logger.catch(reraise=False)
     @inject_history(HistoryType.FOLLOWER)
