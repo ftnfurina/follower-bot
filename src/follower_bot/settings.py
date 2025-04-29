@@ -49,6 +49,10 @@ class FollowingBotSettings(BaseModel):
     trigger: TriggerSettings = Field(
         default_factory=TriggerSettings, description="Settings for the trigger"
     )
+    mode: Literal["all", "follow_new", "follow_back"] = Field(
+        default="all",
+        description="Mode for the following bot",
+    )
     run_now: bool = Field(
         default=True,
         description="Run the trigger immediately",

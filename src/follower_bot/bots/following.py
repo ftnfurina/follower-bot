@@ -42,10 +42,23 @@ class FollowingBot(Bot):
         )
 
     def _get_unfollowed_following(self, count: int) -> Tuple[bool, List[Following]]:
-        followings = self.store.query_unfollowed_following(count)
+        creators = [
+            FollowingCreateBy.FOLLOWING_BOT,
+            FollowingCreateBy.FOLLOWER_BOT,
+        ]
+        following_mode = self.settings.following_bot.mode
+
+        if following_mode == "follow_new":
+            creators.remove(FollowingCreateBy.FOLLOWER_BOT)
+        elif following_mode == "follow_back":
+            creators.remove(FollowingCreateBy.FOLLOWING_BOT)
+        elif following_mode == "all":
+            pass
+
+        followings = self.store.query_unfollowed_following(count, creators)
         state = self.store.query_state()
 
-        while len(followings) < count:
+        while len(followings) < count and following_mode != "follow_back":
             if self.is_stopped():
                 return False, followings
 
@@ -65,7 +78,7 @@ class FollowingBot(Bot):
 
             logger.success(f"Fetched {len(users)} users")
 
-            followings = self.store.query_unfollowed_following(count)
+            followings = self.store.query_unfollowed_following(count, creators)
 
             if len(users) < PER_PAGE_MAX:
                 return True, followings

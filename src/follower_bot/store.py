@@ -14,7 +14,7 @@ from sqlmodel import (
     func as model_func,
 )
 
-from .model import Follower, Following, History, State
+from .model import Follower, Following, History, State, FollowingCreateBy
 
 
 def _inject_session(func):
@@ -70,11 +70,17 @@ class Store:
 
     @_inject_session
     def query_unfollowed_following(
-        self, limit: int, session: Session = None
+        self, limit: int, creators: List[FollowingCreateBy], session: Session = None
     ) -> List[Following]:
         return session.exec(
             select(Following)
-            .where(and_(Following.followed.is_(False), Following.fail_count < 3))
+            .where(
+                and_(
+                    Following.followed.is_(False),
+                    Following.fail_count < 3,
+                    Following.create_by.in_(creators),
+                )
+            )
             .order_by(asc(Following.join_date))
             .limit(limit)
         ).all()
