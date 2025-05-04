@@ -88,7 +88,7 @@ docker run -d --name follower-bot -v "logs:/app/logs" -v "data:/app/data" follow
 docker stop follower-bot
 ```
 
-### 🧪 Development and Debugging
+## 🧪 Development and Debugging
 
 Debugging in a virtual environment (recommended):
 

@@ -90,7 +90,7 @@ class Manager:
 
         json_schema = json.dumps(Bots.model_json_schema(), indent=2)
 
-        with open(".vscode/bots-schema.json", "w", encoding="utf-8") as f:
+        with open(".vscode/bots-schema.json", "w", encoding="utf-8", newline="\n") as f:
             f.write(json_schema)
 
     def _read_bots_settings(self) -> None:
