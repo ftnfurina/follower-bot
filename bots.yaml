@@ -1,0 +1,85 @@
+# Filter expr:
+# - number: (>[=]n | <[=]n | n1..n2)              e.g. repos:>2 | repos:1..5
+#   -> [repos, gists, followers, following]
+# - string: (str)                                 e.g. name:furina
+#   -> [login, name, company, location, email]
+# - date  : (>[=]date | <[=]date | date1..date2)  e.g. updated:>=2021-01-01 | updated:2021-01-01..2021-01-31
+#   -> [updated]
+
+# Operator:
+# - and:    &      e.g. repos:>=50 & followers:>=20
+# - or :    |      e.g. repos:>=50 | followers:>=20
+# - not:    !      e.g. repos:>=50 & !name:furina
+
+# Parentheses precedence:
+# - paren: ()      e.g. repos:>=50 & (followers:>=20 | name:furina)
+
+# For example:
+# filter_expr: repos:>=50 & followers:>=20 & updated:>=2024-01-01
+
+# Sync following/follower bot (Base Bots)
+- name: SyncFollowerBot
+  enabled: true
+  immediately: false
+  trigger:
+    mode: cron
+    expr: "0 12 * * *"
+- name: SyncFollowingBot
+  enabled: true
+  immediately: false
+  trigger:
+    mode: cron
+    expr: "0 12 * * *"
+
+# Mutual follow/unfollow bot
+- name: MutualFollowBot
+  enabled: true
+  immediately: false
+  per_mutual_follow_count: 100
+  trigger:
+    mode: interval
+    hours: 3
+    jitter: 1
+- name: MutualUnfollowBot
+  enabled: true
+  immediately: false
+  per_mutual_unfollow_count: 100
+  not_create_by_user: true
+  trigger:
+    mode: interval
+    hours: 3
+    jitter: 1
+
+# Unfollow following bot
+# Maximum requests = page_max * 100
+- name: UnfollowFollowingBot
+  enabled: false
+  immediately: false
+  page_max: 10
+  per_unfollow_max: 30
+  # Refer to the `Filter expr` specifications in the top section.
+  # If `filter_expr` is not configured, it indicates unfollow all users.
+  # filter_expr: repos:<2 | followers:<20
+  trigger:
+    mode: interval
+    hours: 3
+    jitter: 1
+
+# Follow user bot
+# Maximum requests = search_page_max * (100 + 1)
+# Bot workflow:
+# 1. Batch fetch users via user API: https://api.github.com/users
+# 2. Search user details by username: https://api.github.com/users/{user_login}
+# 3. Filter eligible users according to filter_expr configuration, then follow
+- name: FollowUserBot
+  enabled: true
+  immediately: false
+  per_follow_max: 30
+  search_page_max: 10
+  # Refer to the `Filter expr` specifications in the top section.
+  # If `filter_expr` is not configured, it indicates follow all users.
+  filter_expr: repos:>=2 & followers:>=20
+  trigger:
+    mode: interval
+    hours: 4
+    jitter: 1

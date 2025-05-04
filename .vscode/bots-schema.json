@@ -1,0 +1,431 @@
+{
+  "$defs": {
+    "BotTriggerCron": {
+      "properties": {
+        "mode": {
+          "const": "cron",
+          "default": "cron",
+          "description": "Cron mode",
+          "title": "Mode",
+          "type": "string"
+        },
+        "expr": {
+          "description": "Cron expression for the trigger",
+          "title": "Expr",
+          "type": "string"
+        },
+        "timezone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timezone for the trigger",
+          "title": "Timezone"
+        }
+      },
+      "required": [
+        "expr"
+      ],
+      "title": "BotTriggerCron",
+      "type": "object"
+    },
+    "BotTriggerInterval": {
+      "properties": {
+        "mode": {
+          "const": "interval",
+          "default": "interval",
+          "description": "Interval mode",
+          "title": "Mode",
+          "type": "string"
+        },
+        "weeks": {
+          "default": 0,
+          "description": "Weeks",
+          "minimum": 0,
+          "title": "Weeks",
+          "type": "integer"
+        },
+        "days": {
+          "default": 0,
+          "description": "Days",
+          "minimum": 0,
+          "title": "Days",
+          "type": "integer"
+        },
+        "hours": {
+          "default": 0,
+          "description": "Hours",
+          "minimum": 0,
+          "title": "Hours",
+          "type": "integer"
+        },
+        "minutes": {
+          "default": 0,
+          "description": "Minutes",
+          "minimum": 0,
+          "title": "Minutes",
+          "type": "integer"
+        },
+        "seconds": {
+          "default": 0,
+          "description": "Seconds",
+          "minimum": 0,
+          "title": "Seconds",
+          "type": "integer"
+        },
+        "jitter": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Jitter for the interval trigger",
+          "title": "Jitter"
+        },
+        "timezone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timezone for the trigger",
+          "title": "Timezone"
+        }
+      },
+      "title": "BotTriggerInterval",
+      "type": "object"
+    },
+    "FollowUserBotSettings": {
+      "properties": {
+        "name": {
+          "const": "FollowUserBot",
+          "default": "FollowUserBot",
+          "description": "Follow user bot",
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the bot is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotTriggerInterval"
+            },
+            {
+              "$ref": "#/$defs/BotTriggerCron"
+            }
+          ],
+          "description": "Bot trigger settings",
+          "title": "Trigger"
+        },
+        "immediately": {
+          "default": false,
+          "description": "Whether to execute the bot immediately after start",
+          "title": "Immediately",
+          "type": "boolean"
+        },
+        "search_page_max": {
+          "default": 10,
+          "description": "Maximum number of search pages (page size is 100)",
+          "minimum": 1,
+          "title": "Search Page Max",
+          "type": "integer"
+        },
+        "per_follow_max": {
+          "default": 30,
+          "description": "Maximum number of users to follow per run",
+          "title": "Per Follow Max",
+          "type": "integer"
+        },
+        "filter_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Filter expression for users to follow",
+          "title": "Filter Expr"
+        }
+      },
+      "title": "FollowUserBotSettings",
+      "type": "object"
+    },
+    "MutualFollowBotSettings": {
+      "properties": {
+        "name": {
+          "const": "MutualFollowBot",
+          "default": "MutualFollowBot",
+          "description": "Mutual follow bot",
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the bot is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotTriggerInterval"
+            },
+            {
+              "$ref": "#/$defs/BotTriggerCron"
+            }
+          ],
+          "description": "Bot trigger settings",
+          "title": "Trigger"
+        },
+        "immediately": {
+          "default": false,
+          "description": "Whether to execute the bot immediately after start",
+          "title": "Immediately",
+          "type": "boolean"
+        },
+        "per_mutual_follow_count": {
+          "default": 100,
+          "description": "Mutual follow count per run",
+          "minimum": 1,
+          "title": "Per Mutual Follow Count",
+          "type": "integer"
+        }
+      },
+      "title": "MutualFollowBotSettings",
+      "type": "object"
+    },
+    "MutualUnfollowBotSettings": {
+      "properties": {
+        "name": {
+          "const": "MutualUnfollowBot",
+          "default": "MutualUnfollowBot",
+          "description": "Mutual unfollow bot",
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the bot is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotTriggerInterval"
+            },
+            {
+              "$ref": "#/$defs/BotTriggerCron"
+            }
+          ],
+          "description": "Bot trigger settings",
+          "title": "Trigger"
+        },
+        "immediately": {
+          "default": false,
+          "description": "Whether to execute the bot immediately after start",
+          "title": "Immediately",
+          "type": "boolean"
+        },
+        "per_mutual_unfollow_count": {
+          "default": 100,
+          "description": "Mutual unfollow count per run",
+          "minimum": 1,
+          "title": "Per Mutual Unfollow Count",
+          "type": "integer"
+        },
+        "not_create_by_user": {
+          "default": true,
+          "description": "Whether to exclude following created by the user",
+          "title": "Not Create By User",
+          "type": "boolean"
+        }
+      },
+      "title": "MutualUnfollowBotSettings",
+      "type": "object"
+    },
+    "SyncFollowerBotSettings": {
+      "properties": {
+        "name": {
+          "const": "SyncFollowerBot",
+          "default": "MutualUnfollowBot",
+          "description": "Mutual unfollow bot",
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the bot is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotTriggerInterval"
+            },
+            {
+              "$ref": "#/$defs/BotTriggerCron"
+            }
+          ],
+          "description": "Bot trigger settings",
+          "title": "Trigger"
+        },
+        "immediately": {
+          "default": false,
+          "description": "Whether to execute the bot immediately after start",
+          "title": "Immediately",
+          "type": "boolean"
+        }
+      },
+      "title": "SyncFollowerBotSettings",
+      "type": "object"
+    },
+    "SyncFollowingBotSettings": {
+      "properties": {
+        "name": {
+          "const": "SyncFollowingBot",
+          "default": "SyncFollowingBot",
+          "description": "Sync following bot",
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the bot is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotTriggerInterval"
+            },
+            {
+              "$ref": "#/$defs/BotTriggerCron"
+            }
+          ],
+          "description": "Bot trigger settings",
+          "title": "Trigger"
+        },
+        "immediately": {
+          "default": false,
+          "description": "Whether to execute the bot immediately after start",
+          "title": "Immediately",
+          "type": "boolean"
+        }
+      },
+      "title": "SyncFollowingBotSettings",
+      "type": "object"
+    },
+    "UnfollowFollowingBotSettings": {
+      "properties": {
+        "name": {
+          "const": "UnfollowFollowingBot",
+          "default": "UnfollowFollowingBot",
+          "description": "Unfollow Following Bot",
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the bot is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotTriggerInterval"
+            },
+            {
+              "$ref": "#/$defs/BotTriggerCron"
+            }
+          ],
+          "description": "Bot trigger settings",
+          "title": "Trigger"
+        },
+        "immediately": {
+          "default": false,
+          "description": "Whether to execute the bot immediately after start",
+          "title": "Immediately",
+          "type": "boolean"
+        },
+        "page_max": {
+          "default": 10,
+          "description": "Maximum number of pages (page size is 100)",
+          "minimum": 1,
+          "title": "Page Max",
+          "type": "integer"
+        },
+        "per_unfollow_max": {
+          "default": 30,
+          "description": "Maximum number of users to unfollow per run",
+          "title": "Per Unfollow Max",
+          "type": "integer"
+        },
+        "filter_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Filter expression for users to unfollow",
+          "title": "Filter Expr"
+        }
+      },
+      "title": "UnfollowFollowingBotSettings",
+      "type": "object"
+    }
+  },
+  "items": {
+    "anyOf": [
+      {
+        "$ref": "#/$defs/FollowUserBotSettings"
+      },
+      {
+        "$ref": "#/$defs/MutualFollowBotSettings"
+      },
+      {
+        "$ref": "#/$defs/MutualUnfollowBotSettings"
+      },
+      {
+        "$ref": "#/$defs/SyncFollowerBotSettings"
+      },
+      {
+        "$ref": "#/$defs/SyncFollowingBotSettings"
+      },
+      {
+        "$ref": "#/$defs/UnfollowFollowingBotSettings"
+      }
+    ]
+  },
+  "title": "Bots",
+  "type": "array"
+}
