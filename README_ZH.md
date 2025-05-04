@@ -14,6 +14,13 @@
 2. **状态管理** - 使用持久化存储保证程序重启后可以继续运行。
 3. **多种运行方式** - 包括 Windows 服务和 Docker 容器等。
 
+## 🎯 功能
+
+1. 同步全部关注/追随的用户。
+2. 自动回关那些关注你的用户。
+3. 自动取关那些取关你的用户。
+4. 按条件自动取关/关注用户。
+
 ## 🚀 使用方法
 
 ### 🔧 前置条件
@@ -25,8 +32,33 @@
 2. 获取 GitHub 个人访问令牌，至少包含 `user:follow` 作用域，参考：[管理个人访问令牌](https://docs.github.com/zh/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)。
 3. 保存令牌到 `.env.local` 文件的 `GITHUB_TOKEN` 环境变量中。
 4. 按需求修改 `.env` 文件中的其他配置项。
+5. 按需求修改 `bots.yaml` 文件中的机器人配置。
 
-### 🪟 Windows 上运行
+### 📦 数据存储
+
+修改 `.env` 文件中的 `DATABASE.URL` 配置项，支持以下数据库：
+
+#### 🐬 MySQL（推荐）
+
+```shell
+# 安装依赖
+rye add pymysql
+```
+
+
+```ini
+DATABASE.URL = mysql+pymysql://username:password@localhost/follower_bot
+```
+
+#### 🪶 SQLite（默认）
+
+```ini
+DATABASE.URL = sqlite:///data/store.db
+```
+
+### 🏃 运行方式
+
+#### 🪟 Windows 上运行
 
 > [!Note]
 > 若是使用其他 Python 环境，请自行修改 [follower-bot-service.xml](./follower-bot-service.xml) 文件中 &lt;executable/&gt; 配置项的 Python 路径。
@@ -45,7 +77,7 @@ follower-bot-service.exe stop
 follower-bot-service.exe uninstall
 ```
 
-### 🐋 Docker 上运行
+#### 🐋 Docker 上运行
 
 ```shell
 # 构建 Docker 镜像

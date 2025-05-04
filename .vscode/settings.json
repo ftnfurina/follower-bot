@@ -4,6 +4,8 @@
     "calendarinterval",
     "commitizen",
     "ftnfurina",
+    "furina",
+    "isouter",
     "levelname",
     "levelno",
     "logpath",
@@ -23,5 +25,8 @@
     "*.log",
     "*.lock",
     "pyproject.toml"
-  ]
+  ],
+  "yaml.schemas": {
+    ".vscode/bots-schema.json": "bots.yaml"
+  }
 }

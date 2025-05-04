@@ -5,7 +5,7 @@ import requests
 from loguru import logger
 from rate_keeper import RateKeeper
 
-from .model import User
+from .model import GithubUser, User
 
 PER_PAGE_MAX = 100
 
@@ -46,10 +46,8 @@ def _fetch(
     return response
 
 
-def get_search_users(
-    since: int, token: str, per_page: int = PER_PAGE_MAX
-) -> List[User]:
-    # https://docs.github.com/zh/rest/users/users?apiVersion=2022-11-28#list-users
+def get_users(since: int, token: str, per_page: int = PER_PAGE_MAX) -> List[User]:
+    # https://docs.github.com/zh/rest/users/users#list-users
     url = "https://api.github.com/users"
     params = {
         "since": since,
@@ -94,3 +92,29 @@ def get_user_followers(
     response.raise_for_status()
     data = response.json()
     return [User(**user) for user in data]
+
+
+def get_user_following(
+    page: int, token: str, per_page: int = PER_PAGE_MAX
+) -> List[User]:
+    # https://docs.github.com/en/rest/users/followers#list-the-people-the-authenticated-user-follows
+    url = "https://api.github.com/user/following"
+    params = {
+        "page": page,
+        "per_page": per_page,
+    }
+    headers = _create_headers(token)
+    response: requests.Response = _fetch("GET", url, headers=headers, params=params)
+    response.raise_for_status()
+    data = response.json()
+    return [User(**user) for user in data]
+
+
+def get_user(user_login: int, token: str) -> GithubUser:
+    # https://docs.github.com/en/rest/users/users#get-a-user
+    url = f"https://api.github.com/users/{user_login}"
+    headers = _create_headers(token)
+    response: requests.Response = _fetch("GET", url, headers=headers)
+    response.raise_for_status()
+    data = response.json()
+    return GithubUser(**data)

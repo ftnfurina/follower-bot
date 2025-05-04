@@ -14,6 +14,13 @@
 2. **State Management** - Uses persistent storage to ensure operations resume after restarts.
 3. **Multiple Deployment Options** - Supports Windows service, Docker container, and more.
 
+## 🎯 Function
+
+1. Sync all followers/following.
+2. Auto follow user who follow you.
+3. Auto unfollow user who unfollow you.
+4. Condition based auto unfollow/follow.
+
 ## 🚀 Usage
 
 ### 🔧 Prerequisites
@@ -25,8 +32,33 @@
 2. Generate a GitHub personal access token with at least the `user:follow` scope. See: [Managing Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 3. Save the token to the `GITHUB_TOKEN` variable in the `.env.local` file.
 4. Modify other configurations in the `.env` file as needed.
+5. Modify the bot configurations in the `bots.yaml` file as needed.
 
-### 🪟 Run on Windows
+### 📦 Data Storage
+
+Modify the `DATABASE.URL` configuration item in the `.env` file to support the following databases:
+
+#### 🐬 MySQL (Recommended)
+
+```shell
+# Install dependencies
+rye add pymysql
+```
+
+```ini
+DATABASE.URL = mysql+pymysql://username:password@localhost/follower_bot
+```
+
+#### 🪶 SQLite (Default)
+
+
+```ini
+DATABASE.URL = sqlite:///data/store.db
+```
+
+### 🏃‍♂️ Run the Bot
+
+#### 🪟 Run on Windows
 
 > [!Note]
 > If using a custom Python environment, update the &lt;executable/&gt; path in [follower-bot-service.xml](./follower-bot-service.xml).
@@ -45,7 +77,7 @@ follower-bot-service.exe stop
 follower-bot-service.exe uninstall
 ```
 
-### 🐋 Run with Docker
+#### 🐋 Run with Docker
 
 ```shell
 # Build the Docker image

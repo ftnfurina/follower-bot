@@ -3,7 +3,7 @@ import os
 from loguru import logger
 
 
-def print_banner(banner_file: str):
+def print_banner(banner_file: str) -> None:
     if not os.path.exists(banner_file):
         return
     with open(banner_file, "r") as f:
