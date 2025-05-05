@@ -100,13 +100,14 @@ class Store:
         session.commit()
 
     def query_not_following_followers(
-        self, limit: int, session: Session
+        self, limit: int, unfollow_threshold: int, session: Session
     ) -> List[Tuple[Follower, Optional[Following]]]:
         query = (
             select(Follower, Following)
             .join(Following, Follower.id == Following.id, isouter=True)
             .where(
                 Follower.followed.is_(True),
+                Follower.unfollow_count <= unfollow_threshold,
                 or_(Following.id.is_(None), Following.followed.is_(False)),
             )
             .limit(limit)

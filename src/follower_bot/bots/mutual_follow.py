@@ -18,6 +18,7 @@ class MutualFollowBotSettings(BotSettings):
     per_mutual_follow_count: int = Field(
         default=100, ge=1, description="Mutual follow count per run"
     )
+    unfollow_threshold: int = Field(default=3, ge=1, description="Unfollow threshold")
 
 
 class MutualFollowBot(Bot[MutualFollowBotSettings]):
@@ -28,6 +29,7 @@ class MutualFollowBot(Bot[MutualFollowBotSettings]):
     def exec(self, session: Session, history: History) -> None:
         result = self.store.query_not_following_followers(
             limit=self.settings.per_mutual_follow_count,
+            unfollow_threshold=self.settings.unfollow_threshold,
             session=session,
         )
 

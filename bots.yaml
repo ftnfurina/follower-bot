@@ -36,6 +36,8 @@
   enabled: true
   immediately: false
   per_mutual_follow_count: 100
+  # If a user's follow/unfollow actions exceed this threshold, the bot will automatically stop following them.
+  unfollow_threshold: 3
   trigger:
     mode: interval
     hours: 3

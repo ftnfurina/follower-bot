@@ -248,6 +248,13 @@
           "minimum": 1,
           "title": "Per Mutual Follow Count",
           "type": "integer"
+        },
+        "unfollow_threshold": {
+          "default": 3,
+          "description": "Unfollow threshold",
+          "minimum": 1,
+          "title": "Unfollow Threshold",
+          "type": "integer"
         }
       },
       "title": "MutualFollowBotSettings",
