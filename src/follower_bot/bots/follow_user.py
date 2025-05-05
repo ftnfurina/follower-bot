@@ -46,8 +46,8 @@ class FollowUserBotSettings(BotSettings):
 class FollowUserBot(Bot[FollowUserBotSettings]):
     name: str = "FollowUserBot"
 
-    def __init__(self, settings, g_settings, store, scheduler):
-        super(FollowUserBot, self).__init__(settings, g_settings, store, scheduler)
+    def __init__(self, *args, **kwargs):
+        super(FollowUserBot, self).__init__(*args, **kwargs)
 
         self.postfix_tokens = None
         if self.settings.filter_expr is not None:

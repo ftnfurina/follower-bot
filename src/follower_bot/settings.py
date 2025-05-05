@@ -1,7 +1,8 @@
+import os
 import sys
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,44 @@ class DatabaseSettings(BaseModel):
     log_level: Optional[str] = Field(
         default=None, description="Log level for the database"
     )
+
+
+class EmailSettings(BaseModel):
+    """
+    Settings for the email.
+    """
+
+    smtp_server: str = Field(default="smtp.gmail.com", description="SMTP server")
+    smtp_port: int = Field(default=587, description="SMTP port")
+    smtp_sender_name: str = Field(
+        default="Follower Bot", description="SMTP sender name"
+    )
+    smtp_username: str = Field(description="SMTP username")
+    smtp_password: str = Field(description="SMTP password")
+    sender_email: str = Field(description="Sender email address")
+    recipient_emails: List[str] = Field(
+        min_length=1, description="List of recipient email addresses"
+    )
+    stats_template_file: Optional[str] = Field(
+        default="email/stats_template.html",
+        description="Path to the HTML template for the email stats",
+    )
+    error_template_file: Optional[str] = Field(
+        default="email/error_template.html",
+        description="Path to the HTML template for the email error",
+    )
+
+    @field_validator("stats_template_file")
+    def validate_stats_template_file(cls, v):
+        if not os.path.isfile(v):
+            raise ValueError(f"Stats template file {v} does not exist")
+        return v
+
+    @field_validator("error_template_file")
+    def validate_error_template_file(cls, v):
+        if not os.path.isfile(v):
+            raise ValueError(f"Error template file {v} does not exist")
+        return v
 
 
 class Settings(BaseSettings):
@@ -44,6 +83,9 @@ class Settings(BaseSettings):
     )
     database: DatabaseSettings = Field(
         default_factory=DatabaseSettings, description="Settings for the database"
+    )
+    email: Optional[EmailSettings] = Field(
+        default=None, description="Settings for the email"
     )
 
 

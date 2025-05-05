@@ -20,6 +20,7 @@
 2. Auto follow user who follow you.
 3. Auto unfollow user who unfollow you.
 4. Condition based auto unfollow/follow.
+5. Email notifications for statistics and exception information.
 
 ## 🚀 Usage
 
@@ -54,6 +55,26 @@ DATABASE.URL = mysql+pymysql://username:password@localhost/follower_bot
 
 ```ini
 DATABASE.URL = sqlite:///data/store.db
+```
+
+### 📬 Email Notifications (Optional)
+
+Configure the relevant settings in the `.env.local` file to enable the email notification feature.
+
+```ini
+# Email configuration
+# SMTP server
+EMAIL.SMTP_SERVER = smtp.gmail.com
+# SMTP port
+EMAIL.SMTP_PORT = 587
+# SMTP username
+EMAIL.SMTP_USERNAME = "username"
+# SMTP password
+EMAIL.SMTP_PASSWORD = "password"
+# Sender email address
+EMAIL.SENDER_EMAIL = "sender@example.com"
+# List of recipient email addresses
+EMAIL.RECIPIENT_EMAILS = ["recipient@example.com"]
 ```
 
 ### 🏃‍♂️ Run the Bot

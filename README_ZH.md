@@ -20,6 +20,7 @@
 2. 自动回关那些关注你的用户。
 3. 自动取关那些取关你的用户。
 4. 按条件自动取关/关注用户。
+5. 邮件通知统计/异常信息。
 
 ## 🚀 使用方法
 
@@ -54,6 +55,26 @@ DATABASE.URL = mysql+pymysql://username:password@localhost/follower_bot
 
 ```ini
 DATABASE.URL = sqlite:///data/store.db
+```
+
+### 📬 邮件通知（可选）
+
+在 `.env.local` 文件中配置邮件通知相关配置项，即可开启邮件通知功能。
+
+```ini
+# 邮件配置
+# SMTP 服务器地址
+EMAIL.SMTP_SERVER = smtp.gmail.com
+# SMTP 服务器端口
+EMAIL.SMTP_PORT = 587
+# SMTP 用户名
+EMAIL.SMTP_USERNAME = "username"
+# SMTP 密码
+EMAIL.SMTP_PASSWORD = "password"
+# 发件人邮箱地址
+EMAIL.SENDER_EMAIL = "sender@example.com"
+# 收件人邮箱地址列表
+EMAIL.RECIPIENT_EMAILS = ["recipient@example.com"]
 ```
 
 ### 🏃 运行方式

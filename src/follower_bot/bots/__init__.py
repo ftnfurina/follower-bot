@@ -12,6 +12,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 from sqlmodel import Session
 
+from ..email import Email
 from ..model import CreateBy, History, HistoryState
 from ..settings import Settings
 from ..store import Store
@@ -136,11 +137,17 @@ class Bot(abc.ABC, Generic[T]):
     name: str = "Bot"
 
     def __init__(
-        self, settings: T, g_settings: Settings, store: Store, scheduler: BaseScheduler
+        self,
+        settings: T,
+        g_settings: Settings,
+        store: Store,
+        email: Optional[Email],
+        scheduler: BaseScheduler,
     ):
         self.settings = settings
         self.g_settings = g_settings
         self.store = store
+        self.email = email
         self.scheduler = scheduler
         self.id = f"{self.name}:{id(self)}"
 
@@ -163,6 +170,7 @@ class Bot(abc.ABC, Generic[T]):
             self.exec,
             trigger=create_trigger(self.settings.trigger),
             id=self.id,
+            name=self.name,
             misfire_grace_time=60,
             next_run_time=datetime.now() if self.settings.immediately else undefined,
         )

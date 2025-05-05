@@ -10,6 +10,7 @@
     "redhat.vscode-xml",
     "alexcvzz.vscode-sqlite",
     "yy0931.vscode-sqlite3-editor",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "inferrinizzard.prettier-sql-vscode"
   ]
 }
