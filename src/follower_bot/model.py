@@ -69,6 +69,8 @@ class CreateBy(IntEnum):
     SYNC_FOLLOWING = 32
     UNFOLLOW_FOLLOWING = 64
 
+    MAIL_STATS = 128
+
 
 class Following(User, table=True):
     create_by: CreateBy = Field(description="Who created the following")
@@ -113,6 +115,9 @@ class State(SQLModel, table=True):
     follow_user_since: int = Field(default=0, description="Follow user search since")
     unfollow_following_since: int = Field(
         default=0, description="Unfollow following since"
+    )
+    stat_last_date: datetime = Field(
+        default_factory=datetime.now, description="Last date of statistics"
     )
 
 

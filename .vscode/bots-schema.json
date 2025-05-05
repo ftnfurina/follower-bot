@@ -172,6 +172,43 @@
       "title": "FollowUserBotSettings",
       "type": "object"
     },
+    "MailStatsBotSettings": {
+      "properties": {
+        "name": {
+          "const": "MailStatsBot",
+          "default": "MailStatsBot",
+          "description": "Mutual follow bot",
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the bot is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BotTriggerInterval"
+            },
+            {
+              "$ref": "#/$defs/BotTriggerCron"
+            }
+          ],
+          "description": "Bot trigger settings",
+          "title": "Trigger"
+        },
+        "immediately": {
+          "default": false,
+          "description": "Whether to execute the bot immediately after start",
+          "title": "Immediately",
+          "type": "boolean"
+        }
+      },
+      "title": "MailStatsBotSettings",
+      "type": "object"
+    },
     "MutualFollowBotSettings": {
       "properties": {
         "name": {
@@ -408,6 +445,9 @@
     "anyOf": [
       {
         "$ref": "#/$defs/FollowUserBotSettings"
+      },
+      {
+        "$ref": "#/$defs/MailStatsBotSettings"
       },
       {
         "$ref": "#/$defs/MutualFollowBotSettings"

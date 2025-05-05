@@ -83,3 +83,11 @@
     mode: interval
     hours: 4
     jitter: 1
+
+# Mail stats bot
+- name: MailStatsBot
+  enabled: false
+  immediately: false
+  trigger:
+    mode: cron
+    expr: "0 12 * * *"

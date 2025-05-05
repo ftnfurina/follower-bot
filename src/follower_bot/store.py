@@ -1,9 +1,10 @@
 import logging
+from datetime import datetime
 from typing import List, Optional, Tuple
 
-from sqlmodel import Session, SQLModel, and_, create_engine, or_, select, update
+from sqlmodel import Session, SQLModel, and_, create_engine, func, or_, select, update
 
-from .model import CreateBy, Follower, Following, State
+from .model import CreateBy, Follower, Following, History, State
 
 
 class Store:
@@ -138,5 +139,28 @@ class Store:
             )
             .order_by(Following.id)
             .limit(limit)
+        )
+        return session.exec(query).all()
+
+    def query_follower_count(self, session: Session) -> int:
+        return session.exec(
+            select(func.count(Follower.id)).where(Follower.followed.is_(True))
+        ).one()
+
+    def query_following_count(self, session: Session) -> int:
+        return session.exec(
+            select(func.count(Following.id)).where(Following.followed.is_(True))
+        ).one()
+
+    def query_histories(
+        self, start_date: Optional[datetime], end_date: datetime, session: Session
+    ) -> List[History]:
+        query = (
+            select(History)
+            .where(
+                History.start_date >= start_date if start_date is not None else 1 == 1,
+                History.end_date <= end_date,
+            )
+            .order_by(History.id)
         )
         return session.exec(query).all()

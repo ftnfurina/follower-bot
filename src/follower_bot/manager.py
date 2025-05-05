@@ -2,26 +2,38 @@ import importlib.util
 import inspect
 import json
 import os
-from typing import Dict, List, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 import yaml
-from apscheduler.events import EVENT_SCHEDULER_SHUTDOWN
+from apscheduler.events import (
+    EVENT_JOB_ERROR,
+    EVENT_SCHEDULER_SHUTDOWN,
+    JobExecutionEvent,
+)
 from apscheduler.schedulers.background import BackgroundScheduler
 from loguru import logger
 from pydantic import RootModel, create_model
 
 from .bots import Bot, BotSettings
+from .email import BotError, Email
+from .file import read_file, write_file
 from .settings import Settings
 from .store import Store
 
+BOTS_SCHEMA_FILE = ".vscode/bots-schema.json"
+
 
 class Manager:
-    def __init__(self, settings: Settings, store: Store):
+    def __init__(self, settings: Settings, store: Store, email: Optional[Email] = None):
         self.settings = settings
         self.store = store
+        self.email = email
 
         self._scheduler = BackgroundScheduler()
-        self._scheduler.add_listener(lambda _: self.close(), EVENT_SCHEDULER_SHUTDOWN)
+        self._scheduler.add_listener(
+            self._handle_scheduler_shutdown, EVENT_SCHEDULER_SHUTDOWN
+        )
+        self._scheduler.add_listener(self._handle_job_error, EVENT_JOB_ERROR)
 
         self._bot_classes: Dict[str, Tuple[Type[Bot], Type[BotSettings]]] = {}
         self._scan_classes()
@@ -77,6 +89,7 @@ class Manager:
                 settings=bot_settings_class(**settings.model_dump()),
                 g_settings=self.settings,
                 store=self.store,
+                email=self.email,
                 scheduler=self._scheduler,
             )
             self._bots.append(bot)
@@ -90,8 +103,7 @@ class Manager:
 
         json_schema = json.dumps(Bots.model_json_schema(), indent=2)
 
-        with open(".vscode/bots-schema.json", "w", encoding="utf-8", newline="\n") as f:
-            f.write(json_schema)
+        write_file(BOTS_SCHEMA_FILE, json_schema, newline="\n")
 
     def _read_bots_settings(self) -> None:
         bots_file = self.settings.bots_file
@@ -99,10 +111,9 @@ class Manager:
             raise ValueError(f"Settings file {bots_file} does not exist")
 
         try:
-            with open(bots_file, "r", encoding="utf-8") as f:
-                bots = yaml.safe_load(f)
-                if not isinstance(bots, list):
-                    bots = []
+            bots = yaml.safe_load(read_file(bots_file))
+            if not isinstance(bots, list):
+                bots = []
 
             for bot in bots:
                 bot_settings = BotSettings(**bot)
@@ -116,8 +127,23 @@ class Manager:
         except Exception as e:
             raise ValueError(f"Failed to parse settings file {bots_file}: {e}")
 
+    def _handle_scheduler_shutdown(self, _) -> None:
+        self.close()
+
+    def _handle_job_error(self, event: JobExecutionEvent) -> None:
+        if not self.email:
+            return
+
+        self.email.send_error(
+            BotError(
+                name=event.job_id,
+                message=str(event.exception),
+                traceback=event.traceback,
+            )
+        )
+
     @property
-    def bot_running_count(self) -> int:
+    def running_count(self) -> int:
         return len(self._scheduler.get_jobs())
 
     def start(self) -> None:

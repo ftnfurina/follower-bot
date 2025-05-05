@@ -5,7 +5,7 @@ handlers:
     format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{level:>8}</level>: {message}"
     colorize: true
     # level: DEBUG
-  - sink: logs/{time:YYYY-MM-DD-HH-mm-ss}.log
+  - sink: logs/follower-bot.log
     format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{level:>8}</level>: {message}"
     enqueue: true
     rotation: "00:00"
