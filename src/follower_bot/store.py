@@ -154,12 +154,12 @@ class Store:
         ).one()
 
     def query_histories(
-        self, start_date: Optional[datetime], end_date: datetime, session: Session
+        self, start_date: datetime, end_date: datetime, session: Session
     ) -> List[History]:
         query = (
             select(History)
             .where(
-                History.start_date >= start_date if start_date is not None else 1 == 1,
+                History.start_date >= start_date,
                 History.end_date <= end_date,
             )
             .order_by(History.id)

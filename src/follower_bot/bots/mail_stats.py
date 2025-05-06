@@ -53,15 +53,16 @@ class MailStatsBot(Bot[MailStatsBotSettings]):
         )
 
         mappings = {
-            CreateBy.FOLLOW_USER: stats.follow_user_count,
-            CreateBy.MUTUAL_FOLLOW: stats.mutual_follow_count,
-            CreateBy.MUTUAL_UNFOLLOW: stats.mutual_unfollow_count,
-            CreateBy.UNFOLLOW_FOLLOWING: stats.unfollow_following_count,
+            CreateBy.FOLLOW_USER: "follow_user_count",
+            CreateBy.MUTUAL_FOLLOW: "mutual_follow_count",
+            CreateBy.MUTUAL_UNFOLLOW: "mutual_unfollow_count",
+            CreateBy.UNFOLLOW_FOLLOWING: "unfollow_following_count",
         }
 
         for h in histories:
-            if h.create_by in mappings:
-                mappings[h.create_by] += h.count
+            field_name = mappings.get(h.create_by)
+            if field_name is not None:
+                setattr(stats, field_name, getattr(stats, field_name) + h.count)
 
         ok, error = self.email.send_stats(stats)
 
