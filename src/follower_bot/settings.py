@@ -84,6 +84,9 @@ class Settings(BaseSettings):
     database: DatabaseSettings = Field(
         default_factory=DatabaseSettings, description="Settings for the database"
     )
+    enabled_error_email: bool = Field(
+        default=True, description="Enable sending error email"
+    )
     email: Optional[EmailSettings] = Field(
         default=None, description="Settings for the email"
     )

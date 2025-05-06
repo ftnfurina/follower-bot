@@ -131,16 +131,21 @@ class Manager:
         self.close()
 
     def _handle_job_error(self, event: JobExecutionEvent) -> None:
-        if not self.email:
+        if self.email is None or not self.settings.enabled_error_email:
+            logger.debug(f"Skipping error email for job {event.job_id}")
             return
 
-        self.email.send_error(
+        ok, error = self.email.send_error(
             BotError(
                 name=event.job_id,
                 message=str(event.exception),
                 traceback=event.traceback,
             )
         )
+        if not ok:
+            logger.error(f"Failed to send error email for job {event.job_id}: {error}")
+        else:
+            logger.debug(f"Sent error email for job {event.job_id}")
 
     @property
     def running_count(self) -> int:
