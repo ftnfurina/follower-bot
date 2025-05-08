@@ -77,10 +77,9 @@ class Store:
         session.exec(
             update(Follower)
             .where(
-                and_(
-                    Follower.sync_id != sync_id,
-                    Follower.sync_id.is_not(None),
-                )
+                Follower.sync_id != sync_id,
+                Follower.sync_id.is_not(None),
+                Follower.followed.is_(True),
             )
             .values(followed=False, unfollow_count=Follower.unfollow_count + 1)
         )
@@ -90,10 +89,9 @@ class Store:
         session.exec(
             update(Following)
             .where(
-                and_(
-                    Following.sync_id != sync_id,
-                    Following.sync_id.is_not(None),
-                )
+                Following.sync_id != sync_id,
+                Following.sync_id.is_not(None),
+                Following.followed.is_(True),
             )
             .values(followed=False, unfollow_count=Following.unfollow_count + 1)
         )
