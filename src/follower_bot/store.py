@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import List, Optional, Tuple
 
-from sqlmodel import Session, SQLModel, and_, create_engine, func, or_, select, update
+from sqlmodel import Session, SQLModel, create_engine, func, or_, select, update
 
 from .model import CreateBy, Follower, Following, History, State
 

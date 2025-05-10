@@ -31,15 +31,15 @@ def _fetch(
     response = requests.request(method, url, headers=headers, params=params)
 
     headers_map = {
-        "x-ratelimit-limit": rate_keeper.update_limit,
-        "x-ratelimit-used": rate_keeper.update_used,
-        "x-ratelimit-reset": rate_keeper.update_reset,
+        "x-ratelimit-limit": lambda x: setattr(rate_keeper, "limit", int(x)),
+        "x-ratelimit-used": lambda x: setattr(rate_keeper, "used", int(x)),
+        "x-ratelimit-reset": lambda x: setattr(rate_keeper, "reset", float(x)),
     }
 
     for key, value in response.headers.items():
         lower_key = key.lower()
         if lower_key in headers_map:
-            headers_map[lower_key](int(value))
+            headers_map[lower_key](value)
 
     logger.debug(f"Recommended delay : {rate_keeper.recommend_delay:.2f} seconds")
     logger.debug(f"Rate Keeper: {rate_keeper}")

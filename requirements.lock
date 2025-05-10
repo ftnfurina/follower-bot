@@ -41,7 +41,7 @@ python-dotenv==1.1.0
     # via pydantic-settings
 pyyaml==6.0.2
     # via follower-bot
-rate-keeper==0.2.0
+rate-keeper==0.4.0
     # via follower-bot
 requests==2.32.3
     # via follower-bot
