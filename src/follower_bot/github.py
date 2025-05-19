@@ -9,8 +9,12 @@ from .model import GithubUser, User
 
 PER_PAGE_MAX = 100
 
+
 # UTC timestamp clock
-timestamp_clock = datetime.now(timezone.utc).timestamp
+def timestamp_clock():
+    return datetime.now(timezone.utc).timestamp()
+
+
 # https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
 rate_keeper = RateKeeper(limit=5000, period=3600, clock=timestamp_clock)
 
