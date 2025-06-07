@@ -97,7 +97,7 @@ class FollowUserBot(Bot[FollowUserBotSettings]):
 
                     history.count += 1
                 except RequestException as e:
-                    logger.error(f"Failed to follow: {following.login}, {e}")
+                    logger.error(f"Failed to follow: {user.login}, {e}")
                     if e.response is None or e.response.status_code in [401, 403, 422]:
                         raise e
                     continue
